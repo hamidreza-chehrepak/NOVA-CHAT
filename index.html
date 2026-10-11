@@ -1,0 +1,147 @@
+```html
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>NOVA-CHAT</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Tahoma, Arial, sans-serif;
+      background: #eef2ff;
+      display: flex;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .app {
+      width: 100%;
+      max-width: 600px;
+      height: 85vh;
+      min-height: 450px;
+      background: white;
+      border-radius: 18px;
+      box-shadow: 0 8px 30px #0002;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    header {
+      background: #4338ca;
+      color: white;
+      padding: 20px;
+      font-size: 22px;
+      font-weight: bold;
+    }
+    #status {
+      font-size: 12px;
+      font-weight: normal;
+      margin-top: 8px;
+    }
+    #messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .message {
+      padding: 12px;
+      border-radius: 12px;
+      background: #e0e7ff;
+      overflow-wrap: anywhere;
+    }
+    .message b {
+      display: block;
+      font-size: 12px;
+      margin-bottom: 6px;
+      color: #4338ca;
+    }
+    form {
+      display: flex;
+      gap: 8px;
+      padding: 12px;
+      border-top: 1px solid #ddd;
+    }
+    input {
+      min-width: 0;
+      flex: 1;
+      padding: 13px;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      font-size: 16px;
+    }
+    button {
+      border: 0;
+      background: #4338ca;
+      color: white;
+      padding: 12px 18px;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header>
+      NOVA-CHAT
+      <div id="status">در حال اتصال...</div>
+    </header>
+    <section id="messages"></section>
+    <form id="form">
+      <input id="name" placeholder="نام شما" maxlength="30" required>
+      <input id="text" placeholder="پیامت را بنویس..." maxlength="1000" required>
+      <button type="submit">ارسال</button>
+    </form>
+  </main>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+    const status = document.getElementById("status");
+    const messages = document.getElementById("messages");
+    const form = document.getElementById("form");
+    const nameInput = document.getElementById("name");
+    const textInput = document.getElementById("text");
+
+    socket.on("connect", () => {
+      status.textContent = "متصل به سرور";
+    });
+
+    socket.on("disconnect", () => {
+      status.textContent = "ارتباط قطع شد";
+    });
+
+    socket.on("chat message", (data) => {
+      const item = document.createElement("div");
+      item.className = "message";
+
+      const sender = document.createElement("b");
+      sender.textContent = data.name;
+
+      const body = document.createElement("div");
+      body.textContent = data.text;
+
+      item.append(sender, body);
+      messages.appendChild(item);
+      messages.scrollTop = messages.scrollHeight;
+    });
+
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const name = nameInput.value.trim();
+      const text = textInput.value.trim();
+
+      if (!name || !text || !socket.connected) return;
+
+      socket.emit("chat message", { name, text });
+      textInput.value = "";
+      textInput.focus();
+    });
+  </script>
+</body>
+</html>
+```
