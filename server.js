@@ -6,7 +6,13 @@ const path = require("path");
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server);
+
+const io = new Server(server, {
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST"]
+  }
+});
 
 const PORT = process.env.PORT || 10000;
 
@@ -20,8 +26,11 @@ io.on("connection", (socket) => {
   console.log("A user connected:", socket.id);
 
   socket.on("chat message", (data) => {
-    if (!data || typeof data.name !== "string" ||
-        typeof data.text !== "string") {
+    if (
+      !data ||
+      typeof data.name !== "string" ||
+      typeof data.text !== "string"
+    ) {
       return;
     }
 
